@@ -17,7 +17,7 @@ export class UsersModel {
       return createdUser;
     } catch (error) {
       console.log('Problema al crear usuario:', error);
-      return false;
+      throw new Error('Error al crear el usuario');
     }
   }
 
