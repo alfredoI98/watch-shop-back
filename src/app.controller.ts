@@ -1,26 +1,27 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { JwtAuthGuard } from './auth.guard';
+import { Public } from './auth/public.decorator'; // 🔓 Decorador para indicar que la ruta es pública
 
 @Controller('api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Public()
   @Post('signup')
   createUser(@Body() payload: CreateUserDto) {
     return this.appService.createUser(payload);
   }
 
+  @Public()
   @Post('login')
   login(@Body() payload: ValidateLoginDto) {
     return this.appService.login(payload);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  getCurrentUser(@Req() request: { user: { sub: string; email: string } }) {
-    return request.user;
+  @Get('perfil') // 🔒 Al NO tener el decorador, pedirá token automáticamente
+  obtenerPerfil() {
+    return { mensaje: 'Este es un endpoint protegido' };
   }
 }
