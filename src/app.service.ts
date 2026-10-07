@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ValidateLoginDto } from './dto/validate-login.dto';
@@ -10,9 +14,10 @@ export class AppService {
   constructor(
     private readonly usersModel: UsersModel,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   private sanitizeUser(user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user.toObject ? user.toObject() : user;
     return safeUser;
   }
@@ -31,7 +36,10 @@ export class AppService {
     });
 
     return {
-      access_token: this.jwtService.sign({ sub: user._id.toString(), email: user.email }),
+      access_token: this.jwtService.sign({
+        sub: user._id.toString(),
+        email: user.email,
+      }),
       user: this.sanitizeUser(user),
     };
   }
@@ -52,7 +60,10 @@ export class AppService {
 
     const safeUser = this.sanitizeUser(user);
     return {
-      access_token: this.jwtService.sign({ sub: user._id.toString(), email: user.email }),
+      access_token: this.jwtService.sign({
+        sub: user._id.toString(),
+        email: user.email,
+      }),
       user: safeUser,
     };
   }
