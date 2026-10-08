@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Public } from './auth/public.decorator'; // 🔓 Decorador para indicar que la ruta es pública
+import { AddNewProductDto } from './dto/add-new-product.dto';
 
 @Controller('api')
 export class AppController {
@@ -20,8 +21,8 @@ export class AppController {
     return this.appService.login(payload);
   }
 
-  @Get('perfil') // 🔒 Al NO tener el decorador, pedirá token automáticamente
-  obtenerPerfil() {
-    return { mensaje: 'Este es un endpoint protegido' };
+  @Post('watches')
+  createProduct(@Body() payload: AddNewProductDto) {
+    return this.appService.createProduct(payload);
   }
 }

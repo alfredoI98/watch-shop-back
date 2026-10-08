@@ -7,12 +7,15 @@ import { JwtService } from '@nestjs/jwt';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersModel } from './models/users/users.model';
+import { ProductsModel } from './models/products/product.model';
 import * as bcrypt from 'bcrypt';
+import { AddNewProductDto } from './dto/add-new-product.dto';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly usersModel: UsersModel,
+    private readonly productsModel: ProductsModel,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -66,5 +69,9 @@ export class AppService {
       }),
       user: safeUser,
     };
+  }
+
+  async createProduct(payload: AddNewProductDto) {
+    return this.productsModel.createProduct(payload);
   }
 }

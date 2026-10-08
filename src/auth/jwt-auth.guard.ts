@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CanActivate,
@@ -34,9 +35,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: 'JWT_SECRET', // Usa tu variable de entorno
-      });
+      const payload = await this.jwtService.verifyAsync(token);
       // Guardamos los datos del usuario en la petición para usarlo en los controladores
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       request['user'] = payload;
