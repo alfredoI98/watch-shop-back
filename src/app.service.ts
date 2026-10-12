@@ -74,4 +74,12 @@ export class AppService {
   async createProduct(payload: AddNewProductDto) {
     return this.productsModel.createProduct(payload);
   }
+
+  async findProductById(id: string) {
+    return this.productsModel.findProductById(id);
+  }
+
+  async findAllProducts() {
+    return this.productsModel.findAllProducts();
+  }
 }

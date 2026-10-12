@@ -25,6 +25,16 @@ export class ProductsModel {
       const product = await this.productsModel.findById(id).exec();
       return product;
     } catch (error) {
+      console.log('Problema al consultar el producto:', error);
+      return null;
+    }
+  }
+
+  async findAllProducts() {
+    try {
+      const products = await this.productsModel.find().exec();
+      return products;
+    } catch (error) {
       console.log('Problema al consultar los productos:', error);
       return null;
     }

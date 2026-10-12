@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,5 +24,15 @@ export class AppController {
   @Post('watches')
   createProduct(@Body() payload: AddNewProductDto) {
     return this.appService.createProduct(payload);
+  }
+
+  @Get('watches/:id')
+  findProductById(@Body('id') id: string) {
+    return this.appService.findProductById(id);
+  }
+
+  @Get('watches')
+  findAllProducts() {
+    return this.appService.findAllProducts();
   }
 }
