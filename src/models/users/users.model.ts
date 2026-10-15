@@ -29,4 +29,14 @@ export class UsersModel {
       return null;
     }
   }
+
+  async findUserById(id: string) {
+    try {
+      const user = await this.usersModel.findById(id).exec();
+      return user;
+    } catch (error) {
+      console.log('Problema al consultar el usuario por ID:', error);
+      return null;
+    }
+  }
 }

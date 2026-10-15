@@ -10,12 +10,15 @@ import { UsersModel } from './models/users/users.model';
 import { ProductsModel } from './models/products/product.model';
 import * as bcrypt from 'bcrypt';
 import { AddNewProductDto } from './dto/add-new-product.dto';
+import { AddProductCartDto } from './dto/add-product-cart.dto';
+import { UserCartModel } from './models/userCart/user-cart.model';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly usersModel: UsersModel,
     private readonly productsModel: ProductsModel,
+    private readonly userCartModel: UserCartModel,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -81,5 +84,23 @@ export class AppService {
 
   async findAllProducts() {
     return this.productsModel.findAllProducts();
+  }
+
+  async addToCart(payload: AddProductCartDto) {
+    const user = await this.usersModel.findUserById(payload.userId);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    const cartItem = await this.userCartModel.addProductToCart(payload);
+    return cartItem;
+  }
+
+  async getCartByUserId(userId: string) {
+    const user = await this.usersModel.findUserById(userId);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    const cart = await this.userCartModel.findCartByUserId(userId);
+    return cart;
   }
 }
