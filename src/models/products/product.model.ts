@@ -39,4 +39,16 @@ export class ProductsModel {
       return null;
     }
   }
+
+  async findProductsByIds(ids: string[]) {
+    try {
+      const products = await this.productsModel
+        .find({ _id: { $in: ids } })
+        .exec();
+      return products;
+    } catch (error) {
+      console.log('Problema al consultar los productos por IDs:', error);
+      return null;
+    }
+  }
 }

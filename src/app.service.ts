@@ -103,4 +103,9 @@ export class AppService {
     const cart = await this.userCartModel.findCartByUserId(userId);
     return cart;
   }
+
+  async getProductsByIds(ids) {
+    const products = await this.productsModel.findProductsByIds(ids.ids);
+    return products;
+  }
 }

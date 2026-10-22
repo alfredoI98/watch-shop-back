@@ -28,7 +28,7 @@ export class AppController {
   }
 
   @Get('watches/:id')
-  findProductById(@Body('id') id: string) {
+  findProductById(@Param('id') id: string) {
     return this.appService.findProductById(id);
   }
 
@@ -45,5 +45,10 @@ export class AppController {
   @Get('watches/cart/:userId')
   getCartByUserId(@Param('userId') userId: string) {
     return this.appService.getCartByUserId(userId);
+  }
+
+  @Post('watches/ids')
+  getProductsByIds(@Body() ids) {
+    return this.appService.getProductsByIds(ids);
   }
 }
