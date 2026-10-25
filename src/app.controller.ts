@@ -1,10 +1,25 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Req,
+  ValidationPipe,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { AppService } from './app.service';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Public } from './auth/public.decorator'; // 🔓 Decorador para indicar que la ruta es pública
 import { AddNewProductDto } from './dto/add-new-product.dto';
 import { AddProductCartDto } from './dto/add-product-cart.dto';
+import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
+
+type AuthenticatedRequest = Request & {
+  user: { sub: string };
+};
 
 @Controller('api')
 export class AppController {
@@ -47,8 +62,35 @@ export class AppController {
     return this.appService.getCartByUserId(userId);
   }
 
+  @Get('watches/favorites/:userId')
+  getFavoritesByUserId(
+    @Param('userId') userId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    this.assertCurrentUser(request, userId);
+    return this.appService.getFavoritesByUserId(userId);
+  }
+
+  @Post('watches/favorites')
+  saveFavorites(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    payload: SaveUserFavoritesDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    this.assertCurrentUser(request, payload.userId);
+    return this.appService.saveFavorites(payload);
+  }
+
   @Post('watches/ids')
-  getProductsByIds(@Body() ids) {
+  getProductsByIds(@Body() ids: { ids: string[] }) {
     return this.appService.getProductsByIds(ids);
+  }
+
+  private assertCurrentUser(request: AuthenticatedRequest, userId: string) {
+    if (request.user.sub !== userId) {
+      throw new ForbiddenException(
+        'No puedes acceder a favoritos de otro usuario',
+      );
+    }
   }
 }

@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ValidateLoginDto } from './dto/validate-login.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,6 +16,8 @@ import * as bcrypt from 'bcrypt';
 import { AddNewProductDto } from './dto/add-new-product.dto';
 import { AddProductCartDto } from './dto/add-product-cart.dto';
 import { UserCartModel } from './models/userCart/user-cart.model';
+import { UserFavoritesModel } from './models/userFavorites/user-favorites.model';
+import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
 
 @Injectable()
 export class AppService {
@@ -19,6 +25,7 @@ export class AppService {
     private readonly usersModel: UsersModel,
     private readonly productsModel: ProductsModel,
     private readonly userCartModel: UserCartModel,
+    private readonly userFavoritesModel: UserFavoritesModel,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -104,7 +111,64 @@ export class AppService {
     return cart;
   }
 
-  async getProductsByIds(ids) {
+  async getFavoritesByUserId(userId: string) {
+    const user = await this.usersModel.findUserById(userId);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    const favorites = await this.userFavoritesModel.findByUserId(userId);
+    const items = favorites?.items.length
+      ? await this.productsModel.findProductsByIds(favorites.items)
+      : [];
+
+    if (!items) {
+      throw new InternalServerErrorException(
+        'No se pudieron consultar los productos favoritos',
+      );
+    }
+
+    const productsById = new Map(
+      items.map((product) => [product._id.toString(), product]),
+    );
+    return {
+      items: (favorites?.items ?? [])
+        .map((productId) => productsById.get(productId))
+        .filter((product) => product !== undefined),
+    };
+  }
+
+  async saveFavorites(payload: SaveUserFavoritesDto) {
+    const user = await this.usersModel.findUserById(payload.userId);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    const items = payload.items.length
+      ? await this.productsModel.findProductsByIds(payload.items)
+      : [];
+
+    if (!items) {
+      throw new InternalServerErrorException(
+        'No se pudieron consultar los productos favoritos',
+      );
+    }
+    if (items.length !== payload.items.length) {
+      throw new BadRequestException('Uno o más productos favoritos no existen');
+    }
+
+    await this.userFavoritesModel.saveForUser(payload.userId, payload.items);
+    const productsById = new Map(
+      items.map((product) => [product._id.toString(), product]),
+    );
+    return {
+      items: payload.items
+        .map((productId) => productsById.get(productId))
+        .filter((product) => product !== undefined),
+    };
+  }
+
+  async getProductsByIds(ids: { ids: string[] }) {
     const products = await this.productsModel.findProductsByIds(ids.ids);
     return products;
   }
