@@ -36,6 +36,13 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
+
+      if (payload.type === 'refresh') {
+        throw new UnauthorizedException(
+          'El token de actualización no es válido para este recurso',
+        );
+      }
+
       // Guardamos los datos del usuario en la petición para usarlo en los controladores
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       request['user'] = payload;

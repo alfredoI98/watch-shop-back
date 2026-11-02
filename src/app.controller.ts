@@ -16,6 +16,7 @@ import { Public } from './auth/public.decorator'; // 🔓 Decorador para indicar
 import { AddNewProductDto } from './dto/add-new-product.dto';
 import { AddProductCartDto } from './dto/add-product-cart.dto';
 import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 type AuthenticatedRequest = Request & {
   user: { sub: string };
@@ -35,6 +36,15 @@ export class AppController {
   @Post('login')
   login(@Body() payload: ValidateLoginDto) {
     return this.appService.login(payload);
+  }
+
+  @Public()
+  @Post('auth/refresh')
+  refreshToken(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    payload: RefreshTokenDto,
+  ) {
+    return this.appService.refreshToken(payload);
   }
 
   @Post('watches')

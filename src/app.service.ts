@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ValidateLoginDto } from './dto/validate-login.dto';
@@ -18,6 +19,7 @@ import { AddProductCartDto } from './dto/add-product-cart.dto';
 import { UserCartModel } from './models/userCart/user-cart.model';
 import { UserFavoritesModel } from './models/userFavorites/user-favorites.model';
 import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Injectable()
 export class AppService {
@@ -35,6 +37,23 @@ export class AppService {
     return safeUser;
   }
 
+  private generateTokenPair(user: {
+    _id: { toString(): string };
+    email: string;
+  }) {
+    const userId = user._id.toString();
+    const payload = { sub: userId, email: user.email };
+
+    return {
+      access_token: this.jwtService.sign(payload, { expiresIn: '15m' }),
+      refresh_token: this.jwtService.sign(
+        { ...payload, type: 'refresh' },
+        { expiresIn: '7d' },
+      ),
+      expires_in: 900,
+    };
+  }
+
   async createUser(payload: CreateUserDto) {
     // Verificar si el usuario ya existe
     const userExists = await this.usersModel.findUserByEmail(payload.email);
@@ -48,11 +67,10 @@ export class AppService {
       password: await bcrypt.hash(payload.password, 10),
     });
 
+    const tokens = this.generateTokenPair(user);
+
     return {
-      access_token: this.jwtService.sign({
-        sub: user._id.toString(),
-        email: user.email,
-      }),
+      ...tokens,
       user: this.sanitizeUser(user),
     };
   }
@@ -72,12 +90,31 @@ export class AppService {
     }
 
     const safeUser = this.sanitizeUser(user);
+    const tokens = this.generateTokenPair(user);
+
     return {
-      access_token: this.jwtService.sign({
-        sub: user._id.toString(),
-        email: user.email,
-      }),
+      ...tokens,
       user: safeUser,
+    };
+  }
+
+  async refreshToken(payload: RefreshTokenDto) {
+    const decoded = await this.jwtService.verifyAsync(payload.refreshToken);
+
+    if (decoded.type !== 'refresh') {
+      throw new UnauthorizedException('Refresh token inválido');
+    }
+
+    const user = await this.usersModel.findUserById(decoded.sub);
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const tokens = this.generateTokenPair(user);
+
+    return {
+      ...tokens,
+      user: this.sanitizeUser(user),
     };
   }
 
