@@ -20,6 +20,7 @@ import { UserCartModel } from './models/userCart/user-cart.model';
 import { UserFavoritesModel } from './models/userFavorites/user-favorites.model';
 import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import type { ProductSearchFilters } from './models/products/product.model';
 
 @Injectable()
 export class AppService {
@@ -130,8 +131,8 @@ export class AppService {
     return this.productsModel.findAllProducts();
   }
 
-  async findProductsByName(name: string) {
-    return this.productsModel.findProductsByName(name);
+  async findProductsByFilters(filters: ProductSearchFilters) {
+    return this.productsModel.findProductsByFilters(filters);
   }
 
   async addToCart(payload: AddProductCartDto) {

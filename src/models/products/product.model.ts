@@ -4,6 +4,14 @@ import { Model } from 'mongoose';
 import { Product } from './products.entity';
 import { AddNewProductDto } from 'src/dto/add-new-product.dto';
 
+export interface ProductSearchFilters {
+  name?: string;
+  brand?: string;
+  category?: string;
+  movementType?: string;
+  waterResistance?: string;
+}
+
 @Injectable()
 export class ProductsModel {
   constructor(
@@ -40,18 +48,39 @@ export class ProductsModel {
     }
   }
 
-  async findProductsByName(name: string) {
-    const terms = name.trim().split(/\s+/).filter(Boolean);
-    const filter = {
-      $and: terms.map((term) => ({
-        name: {
-          $regex: term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-          $options: 'i',
-        },
-      })),
-    };
+  async findProductsByFilters(filters: ProductSearchFilters) {
+    const conditions: Array<
+      Partial<
+        Record<keyof ProductSearchFilters, { $regex: string; $options: 'i' }>
+      >
+    > = [];
+    const filterFields: Array<keyof ProductSearchFilters> = [
+      'name',
+      'brand',
+      'category',
+      'movementType',
+      'waterResistance',
+    ];
 
-    return this.productsModel.find(filter).exec();
+    filterFields.forEach((field) => {
+      const value = filters[field];
+      if (!value) return;
+
+      value
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((term) => {
+          conditions.push({
+            [field]: {
+              $regex: term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+              $options: 'i',
+            },
+          });
+        });
+    });
+
+    return this.productsModel.find({ $and: conditions }).exec();
   }
 
   async findProductsByIds(ids: string[]) {

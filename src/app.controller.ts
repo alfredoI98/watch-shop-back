@@ -21,6 +21,7 @@ import { AddProductCartDto } from './dto/add-product-cart.dto';
 import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateProductStockDto } from './dto/update-product-stock.dto';
+import type { ProductSearchFilters } from './models/products/product.model';
 
 type AuthenticatedRequest = Request & {
   user: { sub: string };
@@ -62,14 +63,26 @@ export class AppController {
   }
 
   @Get('watches')
-  findAllProducts(@Query('name') name: unknown) {
-    if (name !== undefined && typeof name !== 'string') {
-      throw new BadRequestException('El parámetro name debe ser una cadena');
-    }
+  findAllProducts(
+    @Query('name') name: unknown,
+    @Query('brand') brand: unknown,
+    @Query('category') category: unknown,
+    @Query('movementType') movementType: unknown,
+    @Query('waterResistance') waterResistance: unknown,
+  ) {
+    const filters: ProductSearchFilters = {
+      name: this.parseOptionalFilter(name, 'name'),
+      brand: this.parseOptionalFilter(brand, 'brand'),
+      category: this.parseOptionalFilter(category, 'category'),
+      movementType: this.parseOptionalFilter(movementType, 'movementType'),
+      waterResistance: this.parseOptionalFilter(
+        waterResistance,
+        'waterResistance',
+      ),
+    };
 
-    const searchTerm = name?.trim();
-    if (searchTerm) {
-      return this.appService.findProductsByName(searchTerm);
+    if (Object.values(filters).some(Boolean)) {
+      return this.appService.findProductsByFilters(filters);
     }
 
     return this.appService.findAllProducts();
@@ -124,5 +137,15 @@ export class AppController {
         'No puedes acceder a favoritos de otro usuario',
       );
     }
+  }
+
+  private parseOptionalFilter(value: unknown, field: string) {
+    if (value !== undefined && typeof value !== 'string') {
+      throw new BadRequestException(
+        `El parámetro ${field} debe ser una cadena`,
+      );
+    }
+
+    return value?.trim() || undefined;
   }
 }
