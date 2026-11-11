@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -6,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   ValidationPipe,
 } from '@nestjs/common';
@@ -60,7 +62,16 @@ export class AppController {
   }
 
   @Get('watches')
-  findAllProducts() {
+  findAllProducts(@Query('name') name: unknown) {
+    if (name !== undefined && typeof name !== 'string') {
+      throw new BadRequestException('El parámetro name debe ser una cadena');
+    }
+
+    const searchTerm = name?.trim();
+    if (searchTerm) {
+      return this.appService.findProductsByName(searchTerm);
+    }
+
     return this.appService.findAllProducts();
   }
 

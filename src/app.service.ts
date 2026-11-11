@@ -130,6 +130,10 @@ export class AppService {
     return this.productsModel.findAllProducts();
   }
 
+  async findProductsByName(name: string) {
+    return this.productsModel.findProductsByName(name);
+  }
+
   async addToCart(payload: AddProductCartDto) {
     const user = await this.usersModel.findUserById(payload.userId);
     if (!user) {

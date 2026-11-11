@@ -40,6 +40,20 @@ export class ProductsModel {
     }
   }
 
+  async findProductsByName(name: string) {
+    const terms = name.trim().split(/\s+/).filter(Boolean);
+    const filter = {
+      $and: terms.map((term) => ({
+        name: {
+          $regex: term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          $options: 'i',
+        },
+      })),
+    };
+
+    return this.productsModel.find(filter).exec();
+  }
+
   async findProductsByIds(ids: string[]) {
     try {
       const products = await this.productsModel
