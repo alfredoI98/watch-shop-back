@@ -51,4 +51,18 @@ export class ProductsModel {
       return null;
     }
   }
+
+  async updateProductStock(productId: string, stock: number) {
+    try {
+      const product = await this.productsModel.findByIdAndUpdate(
+        productId,
+        { stock },
+        { after: true },
+      );
+      return product;
+    } catch (error) {
+      console.log('Problema al actualizar el stock del producto:', error);
+      throw new Error('Error al actualizar el stock del producto');
+    }
+  }
 }

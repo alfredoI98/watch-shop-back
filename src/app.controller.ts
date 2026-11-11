@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   ValidationPipe,
@@ -17,6 +18,7 @@ import { AddNewProductDto } from './dto/add-new-product.dto';
 import { AddProductCartDto } from './dto/add-product-cart.dto';
 import { SaveUserFavoritesDto } from './dto/save-user-favorites.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { UpdateProductStockDto } from './dto/update-product-stock.dto';
 
 type AuthenticatedRequest = Request & {
   user: { sub: string };
@@ -89,6 +91,15 @@ export class AppController {
   ) {
     this.assertCurrentUser(request, payload.userId);
     return this.appService.saveFavorites(payload);
+  }
+
+  @Patch('watches/:productId/stock')
+  updateProductStock(
+    @Param('productId') productId: string,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    payload: UpdateProductStockDto,
+  ) {
+    return this.appService.updateProductStock(productId, payload.quantityDelta);
   }
 
   @Post('watches/ids')

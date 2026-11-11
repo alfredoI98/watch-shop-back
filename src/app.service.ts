@@ -205,6 +205,16 @@ export class AppService {
     };
   }
 
+  async updateProductStock(productId: string, quantityDelta: number) {
+    const product = await this.productsModel.findProductById(productId);
+    if (!product) {
+      throw new BadRequestException('Producto no encontrado');
+    }
+
+    const nextStock = Math.max(product.stock + quantityDelta, 0);
+    return this.productsModel.updateProductStock(productId, nextStock);
+  }
+
   async getProductsByIds(ids: { ids: string[] }) {
     const products = await this.productsModel.findProductsByIds(ids.ids);
     return products;
